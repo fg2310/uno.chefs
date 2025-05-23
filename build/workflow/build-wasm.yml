@@ -1,13 +1,6 @@
 jobs:
 - job: WASM
-  strategy:
-    matrix:
-      WASM:
-        UseSkiaRendering: false
-        ArtifactName: WASM
-      WASM_Skia:
-        UseSkiaRendering: true
-        ArtifactName: WASM_Skia
+
   timeoutInMinutes: 90
   pool:
     vmImage: ubuntu-latest
@@ -95,7 +88,7 @@ jobs:
     displayName: Publish build logs
     inputs:
       PathtoPublish: $(build.artifactstagingdirectory)/logs
-      ArtifactName: $(ArtifactName)-logs
+      ArtifactName: wasm-logs
       ArtifactType: Container
 
   - task: PublishPipelineArtifact@1
@@ -103,4 +96,4 @@ jobs:
     displayName: Publish artifacts
     inputs:
       targetPath: $(build.artifactstagingdirectory)/wwwroot
-      artifactName: $(ArtifactName)
+      artifactName: wasm

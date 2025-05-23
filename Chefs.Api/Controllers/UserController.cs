@@ -5,9 +5,9 @@ namespace Chefs.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class UserController : ControllerBase
+public class UserController() : ChefsControllerBase
 {
-	private readonly string _usersFilePath = "Data/AppData/Users.json";
+	private readonly string _usersFilePath = "Users.json";
 	private Guid? _currentUserId = new Guid("3c896419-e280-40e7-8552-240635566fed");
 
 	/// <summary>
@@ -15,7 +15,9 @@ public class UserController : ControllerBase
 	/// </summary>
 	/// <returns>A list of users.</returns>
 	[HttpGet]
-	public IActionResult GetAll()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<UserData>), 200)]
+	public ActionResult<IEnumerable<UserData>> GetAll()
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		return Ok(users.ToImmutableList());
@@ -27,7 +29,9 @@ public class UserController : ControllerBase
 	/// <param name="loginRequest">The login request containing email and password.</param>
 	/// <returns>The user ID if authentication is successful, otherwise Unauthorized.</returns>
 	[HttpPost("authenticate")]
-	public IActionResult Authenticate([FromBody] LoginRequest loginRequest)
+	[ProducesResponseType(typeof(Guid), 200)]
+	[ProducesResponseType(401)]
+	public ActionResult<Guid> Authenticate([FromBody] LoginRequest loginRequest)
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		var user = users.FirstOrDefault(u => u.Email == loginRequest.Email && u.Password == loginRequest.Password);
@@ -46,7 +50,9 @@ public class UserController : ControllerBase
 	/// </summary>
 	/// <returns>A list of popular creators.</returns>
 	[HttpGet("popular-creators")]
-	public IActionResult GetPopularCreators()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<UserData>), 200)]
+	public ActionResult<IEnumerable<UserData>> GetPopularCreators()
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		var popularCreators = users.Where(x => x.Id != _currentUserId).ToImmutableList();
@@ -58,7 +64,10 @@ public class UserController : ControllerBase
 	/// </summary>
 	/// <returns>The current user.</returns>
 	[HttpGet("current")]
-	public IActionResult GetCurrent()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(UserData), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<UserData> GetCurrent()
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		var currentUser = users.FirstOrDefault(u => u.Id == _currentUserId);
@@ -82,7 +91,10 @@ public class UserController : ControllerBase
 	/// <param name="user">The updated user data.</param>
 	/// <returns>The updated user, or NotFound if the user does not exist.</returns>
 	[HttpPut]
-	public IActionResult Update([FromBody] UserData user)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(UserData), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<UserData> Update([FromBody] UserData user)
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		var userIndex = users.FindIndex(u => u.Id == _currentUserId);
@@ -115,7 +127,10 @@ public class UserController : ControllerBase
 	/// <param name="id">The user ID.</param>
 	/// <returns>The user, or NotFound if the user does not exist.</returns>
 	[HttpGet("{id:guid}")]
-	public IActionResult GetById(Guid id)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(UserData), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<UserData> GetById(Guid id)
 	{
 		var users = LoadData<List<UserData>>(_usersFilePath);
 		var user = users.FirstOrDefault(u => u.Id == id);
@@ -126,18 +141,6 @@ public class UserController : ControllerBase
 		}
 
 		return Ok(user);
-	}
-
-	/// <summary>
-	/// Loads data from a specified JSON file.
-	/// </summary>
-	/// <typeparam name="T">The type of data to load.</typeparam>
-	/// <param name="filePath">The file path of the JSON file.</param>
-	/// <returns>The loaded data.</returns>
-	private T LoadData<T>(string filePath)
-	{
-		var json = System.IO.File.ReadAllText(filePath);
-		return JsonSerializer.Deserialize<T>(json);
 	}
 }
 

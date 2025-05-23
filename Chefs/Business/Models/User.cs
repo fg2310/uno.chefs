@@ -1,4 +1,4 @@
-using UserData = Chefs.Services.Clients.Models.UserData;
+using UserData = Chefs.Client.Models.UserData;
 namespace Chefs.Business.Models;
 
 public partial record User
@@ -14,7 +14,7 @@ public partial record User
 		Followers = user.Followers;
 		Following = user.Following;
 		Recipes = user.Recipes;
-		IsCurrent = (bool)user.IsCurrent;
+		IsCurrent = user.IsCurrent ?? false;
 	}
 
 	public Guid Id { get; init; }

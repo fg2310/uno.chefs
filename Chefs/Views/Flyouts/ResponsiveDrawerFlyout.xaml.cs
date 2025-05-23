@@ -34,12 +34,6 @@ public partial class ResponsiveDrawerFlyout : Flyout, IRecipient<ThemeChangedMes
 				DrawerFlyoutPresenter.SetDrawerLength(presenter, new GridLength(1, GridUnitType.Star));
 				DrawerFlyoutPresenter.SetIsGestureEnabled(presenter, false);
 			}
-
-			// Workaround for https://github.com/unoplatform/uno.chefs/issues/1436
-			// Not explicitly setting thickness causes thickness to be set to a value greater than 1 sometime during runtime
-#if __IOS__
-			presenter.BorderThickness = new Thickness(0);
-#endif
 		}
 	}
 
@@ -58,7 +52,12 @@ public partial class ResponsiveDrawerFlyout : Flyout, IRecipient<ThemeChangedMes
 #if WINDOWS
 		_ = DispatcherQueue.TryEnqueue(() =>
 		{
-			MainLayout.RequestedTheme = message.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+			MainLayout.RequestedTheme = message.Theme switch
+			{
+				AppTheme.Light => ElementTheme.Light,
+				AppTheme.Dark => ElementTheme.Dark,
+				_ => ElementTheme.Default
+			};
 		});
 #endif
 	}

@@ -2,7 +2,7 @@
 uid: Uno.Recipes.Serialization
 ---
 
-# How to inject serializer objects as dependencies into your application
+# Serialization
 
 ## Problem
 
@@ -15,13 +15,11 @@ The Uno.Extensions library provides a set of abstractions for serialization and 
 ### App Startup Configuration
 
 ```csharp
-public class App : Application
+public partial class App : Application
 {
-    // Code omitted for brevity
-
-    protected async override void OnLaunched(LaunchActivatedEventArgs args)
+    private void ConfigureAppBuilder(IApplicationBuilder builder)
     {
-      var builder = this.CreateBuilder(args)
+      builder
         .Configure(host => host
           // Code omitted for brevity
 
@@ -29,30 +27,64 @@ public class App : Application
           .UseSerialization()
 
           // Code omitted for brevity
-      );
-
-    // Code omitted for brevity
+        );
     }
 }
-```
 
 ### Consume `ISerializer` as dependency in data services
 
-[!code-csharp[](../../Chefs/Services/MockEndpoints/MockNotificationEndpoints.cs#L5-L20)]
+```csharp
+public class MockNotificationEndpoints(string basePath, ISerializer serializer) : BaseMockEndpoint
+{
+  public string HandleNotificationsRequest(HttpRequestMessage request)
+  {
+    var notificationsData = LoadData("Notifications.json");
+    var notifications = serializer.FromString<List<NotificationData>>(notificationsData);
+  
+    //Get all notifications
+    if (request.RequestUri.AbsolutePath == "/api/notification" && request.Method == HttpMethod.Get)
+    {
+    return serializer.ToString(notifications);
+    }
+  
+    return "{}";
+  }
+}
+```
 
 ### Notification JSON data (notifications.json)
 
-[!code-json[](../../Chefs/Data/AppData/Notifications.json#L2-L13)]
+```json
+  {
+    "Title": "New recipe!",
+    "Description": "Far far away, behind the word mountains, far from the countries.",
+    "Read": true,
+    "Date": "2022-10-18T00:00:00Z"
+  },
+  {
+    "Title": "Don’t forget to try your saved recipe",
+    "Description": "Far far away, behind the word mountains, far from the countries.",
+    "Read": true,
+    "Date": "2022-10-18T00:00:00Z"
+  },
+...
+```
 
 ### NotificationData model object
 
-[!code-csharp[](../../Chefs/Data/Entities/NotificationData.cs#L3-L9)]
+```csharp
+public class NotificationData
+{
+  public string? Title { get; set; }
+  public string? Description { get; set; }
+  public bool Read { get; set; }
+  public DateTime Date { get; set; }
+}
+```
 
 ## Source Code
 
-Chefs app
-
-- [App Startup](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/App.xaml.cs#L94)
+- [App Startup](https://github.com/unoplatform/uno.chefs/blob/04a93886dd0b530386997179b80453a59e832fbe/Chefs/App.xaml.host.cs#L77)
 - [Notification Data Service](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Services/MockEndpoints/MockNotificationEndpoints.cs#L5)
 - [Notification Data Model](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Data/Entities/NotificationData.cs)
 - [JSON Data Files](https://github.com/unoplatform/uno.chefs/tree/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Data/AppData)

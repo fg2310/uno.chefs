@@ -2,7 +2,7 @@
 uid: Uno.Recipes.LiveCharts
 ---
 
-# How to integrate LiveCharts controls
+# Integrating LiveCharts Controls
 
 ## Problem
 
@@ -12,28 +12,24 @@ Mobile and desktop applications often need to display complex data in an easy-to
 
 **LiveCharts** is a flexible and customizable charting library that can be integrated into any .NET application, including Uno Platform apps. It provides various chart types, from basic line and bar charts to more complex heat maps and financial charts.
 
-### App startup configuration
+### Code behind configuration
 
 ```csharp
-public class App : Application
+public sealed partial class RecipeDetailsPage : Page
 {
-    // Code omitted for brevity
+  public RecipeDetailsPage()
+  {
+    this.InitializeComponent();
 
-    protected async override void OnLaunched(LaunchActivatedEventArgs args)
-    {
-        // Code omitted for brevity
-
-        LiveCharts.Configure(config =>
-            config
-            .HasMap<NutritionChartItem>((nutritionChartItem, point) =>
-            {
-                // here we use the index as X, and the nutrition value as Y
-                return new(point, nutritionChartItem.Value);
-            })
-        );
-
-        // Code omitted for brevity
-    }
+    LiveCharts.Configure(config =>
+      config
+        .HasMap<NutritionChartItem>((nutritionChartItem, point) =>
+        {
+          // here we use the index as X, and the nutrition value as Y 
+          return new(point, nutritionChartItem.Value);
+        })
+    );
+  }
 }
 ```
 
@@ -53,11 +49,31 @@ public class App : Application
 
 ### Chart control code-behind
 
-[!code-csharp[](../../Chefs/Views/Controls/ChartControl.xaml.cs#L10)]
+```csharp
+public sealed partial class ChartControl : UserControl
+{
+ private Recipe? _recipe;
+ public ChartControl()
+ {
+    this.InitializeComponent();
+
+    _recipe = DataContext as Recipe;
+    if (_recipe != null)
+    {
+      BuildColumnChart();
+      BuildDoughnutChart();
+    }
+
+    DataContextChanged += OnDataContextChanged;
+ }
+ ...
+```
 
 ### Using ChartControl
 
-[!code-xml[](../../Chefs/Views/RecipeDetailsPage.xaml#L426-L432)]
+```xml
+<ctrl:ChartControl DataContext="{Binding Recipe}" Grid.Row="1" />
+```
 
 Doughtnut and horizontal bars chart on the Recipe details page:
 <table>
@@ -71,12 +87,10 @@ Doughtnut and horizontal bars chart on the Recipe details page:
 
 ## Source Code
 
-Chefs app
-
-- [App Startup](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/App.xaml.cs#L129)
+- [Code behind Configuration](https://github.com/unoplatform/uno.chefs/blob/04a93886dd0b530386997179b80453a59e832fbe/Chefs/Views/RecipeDetailsPage.xaml.cs#L11-L18)
 - [Custom Chart Control](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/Controls/ChartControl.xaml)
 - [Chart Control Code-Behind](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/Controls/ChartControl.xaml.cs#)
-- [Chart Item Model](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Business/Models/NutritionChartItem.c)
+- [Chart Item Model](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Business/Models/NutritionChartItem.cs)
 - [Chart Control Instance](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/RecipeDetailsPage.xaml#L434-L435)
 
 ## Documentation

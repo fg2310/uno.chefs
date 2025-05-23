@@ -2,7 +2,7 @@
 uid: Uno.Recipes.SafeArea
 ---
 
-# How to restrict page content to the Safe Area on mobile devices
+# Adapting to Safe Area on Mobile
 
 ## Problem
 
@@ -10,7 +10,10 @@ In a mobile platform context, UI elements can be obscured by device-specific fea
 
 ## Solution
 
-[!code-xml[](../../Chefs/Views/WelcomePage.xaml#L21)]
+```xml
+<utu:AutoLayout utu:SafeArea.Insets="VisibleBounds"
+                Orientation="{utu:Responsive Normal=Vertical, Wide=Horizontal}">
+```
 
 Without SafeArea|SafeArea applied
 -|-

@@ -2,7 +2,7 @@
 uid: Uno.Recipes.ResourceExtensions
 ---
 
-# How to utilize the Resource Extensions
+# Page and App Level Lightweight Styles
 
 ## Problem
 
@@ -11,7 +11,6 @@ Applying consistent and efficient styles across an application can be challengin
 ## Solution
 
 **Uno.Toolkit** provides a lightweight styling mechanism using the Resources Extensions. This extension facilitates assigning a specific ResourceDictionary directly to a control's style. It simplifies [lightweight styling](xref:Toolkit.LightweightStyling) by eliminating the necessity to declare each resource on the page explicitly, enabling the easy creation of diverse visual elements with shared styles but varied attributes.
-
 
 ### Applying Resource Extensions
 
@@ -61,8 +60,6 @@ The `Fab.xaml` file from Chefs demonstrates how to define a custom style with re
 For more detailed examples of basic lightweight styling, please refer to the [Basic Lightweight Styling recipe book](xref:Uno.Recipes.LightweightStyling).
 
 ## Source Code
-
-Chefs app
 
 - [Fab Style](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Styles/Button.xaml#L45-L80)
 

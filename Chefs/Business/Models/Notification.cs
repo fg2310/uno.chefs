@@ -1,4 +1,4 @@
-using NotificationData = Chefs.Services.Clients.Models.NotificationData;
+using NotificationData = Chefs.Client.Models.NotificationData;
 
 namespace Chefs.Business.Models;
 
@@ -11,7 +11,7 @@ public record Notification
 		Read = notificationData.IsRead ?? false;
 		Date = notificationData.Date?.DateTime ?? DateTime.MinValue;
 	}
-	
+
 	public string? Title { get; init; }
 	public string? Description { get; init; }
 	public bool Read { get; init; }

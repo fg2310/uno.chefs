@@ -2,7 +2,7 @@
 uid: Uno.Recipes.Pagination
 ---
 
-# Implementing pagination for lists
+# Pagination
 
 ## Problem
 
@@ -18,7 +18,14 @@ When using `ItemsRepeater`, incremental loading is not supported by default. To 
 
 As an example, in Chefs we show a list of favorite recipes when creating or editing a Cookbook. Since the list can be long, we use pagination to load recipes as the user scrolls.
 
-[!code-csharp[](../../Chefs/Presentation/CreateUpdateCookbookModel.cs#L58-L62)]
+```csharp
+public IListFeed<Recipe> Recipes => ListFeed
+    .PaginatedAsync(
+        async (PageRequest pageRequest, CancellationToken ct) =>
+            await _recipeService.GetFavoritedWithPagination(pageRequest.DesiredSize ?? DefaultPageSize, pageRequest.CurrentCount, ct)
+    )
+    .Selection(SelectedRecipes);
+```
 
 The `PaginatedAsync` method takes a function that returns the next page of data. It provides the page size and current item count, so we can ask the service only for the new items we need.
 
@@ -47,8 +54,6 @@ xmlns:utu="using:Uno.Toolkit.UI"
 Now, as the user scrolls, more recipes are automatically loaded and displayed — no extra logic required.
 
 ## Source Code
-
-Chefs app
 
 - [CreateUpdateCookbookModel.cs](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Presentation/CreateUpdateCookbookModel.cs#L59-L62)
 - [CreateUpdateCookbookPage.xaml](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/CreateUpdateCookbookPage.xaml#L115-L128)

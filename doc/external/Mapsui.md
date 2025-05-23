@@ -2,7 +2,7 @@
 uid: Uno.Recipes.Mapsui
 ---
 
-# How to set up an interactive map
+# Setting Up an Interactive Map
 
 ## Problem
 
@@ -18,7 +18,10 @@ Mapsui is a map library for .NET that works on multiple platforms. It lets you a
 
 Start by adding the map element in your page.
 
-[!code-xml[](../../Chefs/Views/MapPage.xaml#L29-L30)]
+```xml
+<map:MapControl x:Name="MapControl"
+                utu:AutoLayout.PrimaryAlignment="Stretch" />
+```
 
 ### Setting up the map page
 
@@ -49,8 +52,6 @@ public sealed partial class MapPage : Page
 ```
 
 ## Source Code
-
-Chefs app
 
 - [MapPage.xaml.cs](https://github.com/unoplatform/uno.chefs/blob/c9d86cc309ee92f2eca71eb344b90869c0fa2885/Chefs/Views/MapPage.xaml.cs)
 - [MapPage.xaml](https://github.com/unoplatform/uno.chefs/blob/c9d86cc309ee92f2eca71eb344b90869c0fa2885/Chefs/Views/MapPage.xaml#L29-L30)

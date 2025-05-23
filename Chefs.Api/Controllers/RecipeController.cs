@@ -1,5 +1,3 @@
-
-
 namespace Chefs.Api.Controllers;
 
 /// <summary>
@@ -7,18 +5,21 @@ namespace Chefs.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class RecipeController : ControllerBase
+public class RecipeController() : ChefsControllerBase
 {
-	private readonly string _recipesFilePath = "Data/AppData/Recipes.json";
-	private readonly string _savedRecipesFilePath = "Data/AppData/SavedRecipes.json";
-	private readonly string _categoriesFilePath = "Data/AppData/Categories.json";
+	private readonly string _recipesFilePath = "Recipes.json";
+	private readonly string _savedRecipesFilePath = "SavedRecipes.json";
+	private readonly string _categoriesFilePath = "categories.json";
 
 	/// <summary>
 	/// Retrieves all recipes.
 	/// </summary>
 	/// <returns>A list of recipes.</returns>
 	[HttpGet]
-	public IActionResult GetAll()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<RecipeData>), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<IEnumerable<RecipeData>> GetAll()
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		return Ok(recipes.ToImmutableList());
@@ -30,7 +31,9 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>The count of recipes for the user.</returns>
 	[HttpGet("count")]
-	public IActionResult GetCount([FromQuery] Guid userId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(int), 200)]
+	public ActionResult<int> GetCount([FromQuery] Guid userId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var count = recipes.Count(r => r.UserId == userId);
@@ -42,7 +45,10 @@ public class RecipeController : ControllerBase
 	/// </summary>
 	/// <returns>A list of categories.</returns>
 	[HttpGet("categories")]
-	public IActionResult GetCategories()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<CategoryData>), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<IEnumerable<CategoryData>> GetCategories()
 	{
 		var categories = LoadData<List<CategoryData>>(_categoriesFilePath);
 		return Ok(categories.ToImmutableList());
@@ -53,7 +59,9 @@ public class RecipeController : ControllerBase
 	/// </summary>
 	/// <returns>A list of trending recipes.</returns>
 	[HttpGet("trending")]
-	public IActionResult GetTrending()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<RecipeData>), 200)]
+	public ActionResult<IEnumerable<RecipeData>> GetTrending()
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var trending = recipes.Take(10).ToImmutableList();
@@ -65,7 +73,9 @@ public class RecipeController : ControllerBase
 	/// </summary>
 	/// <returns>A list of popular recipes.</returns>
 	[HttpGet("popular")]
-	public IActionResult GetPopular()
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<RecipeData>), 200)]
+	public ActionResult<IEnumerable<RecipeData>> GetPopular()
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var popular = recipes.Take(15).ToImmutableList();
@@ -78,14 +88,15 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>A list of favorited recipes.</returns>
 	[HttpGet("favorited")]
-	public IActionResult GetFavorited([FromQuery] Guid userId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<RecipeData>), 200)]
+	public ActionResult<IEnumerable<RecipeData>> GetFavorited([FromQuery] Guid userId)
 	{
-		var savedRecipes = LoadData<List<SavedRecipesData>>(_savedRecipesFilePath);
-		var userSavedRecipes = savedRecipes.FirstOrDefault(sr => sr.UserId == userId)?.SavedRecipes ?? new Guid[0];
+		var savedRecipes = LoadData<List<Guid>>(_savedRecipesFilePath);
 
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var favorited = recipes
-			.Where(r => userSavedRecipes.Contains(r.Id))
+			.Where(r => savedRecipes.Contains(r.Id))
 			.Select(r =>
 			{
 				r.IsFavorite = true;
@@ -103,29 +114,9 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>No content.</returns>
 	[HttpPost("favorited")]
-	public IActionResult ToggleFavorite([FromQuery] Guid recipeId, [FromQuery] Guid userId)
-	{
-		var savedRecipes = LoadData<List<SavedRecipesData>>(_savedRecipesFilePath);
-		var userSavedRecipe = savedRecipes.FirstOrDefault(sr => sr.UserId == userId);
-
-		if (userSavedRecipe != null)
-		{
-			if (userSavedRecipe.SavedRecipes.Contains(recipeId))
-			{
-				userSavedRecipe.SavedRecipes = userSavedRecipe.SavedRecipes.Where(id => id != recipeId).ToArray();
-			}
-			else
-			{
-				userSavedRecipe.SavedRecipes = userSavedRecipe.SavedRecipes.Concat(new[] { recipeId }).ToArray();
-			}
-		}
-		else
-		{
-			savedRecipes.Add(new SavedRecipesData { UserId = userId, SavedRecipes = new[] { recipeId } });
-		}
-
-		return NoContent();
-	}
+	public IActionResult ToggleFavorite([FromQuery] Guid recipeId, [FromQuery] Guid userId) =>
+		// We do not persist the favorite state in this example.
+		NoContent();
 
 	/// <summary>
 	/// Saves or unsaves a recipe for a specific user.
@@ -134,29 +125,9 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>No content.</returns>
 	[HttpPost]
-	public IActionResult Save([FromBody] RecipeData recipe, [FromQuery] Guid userId)
-	{
-		var savedRecipes = LoadData<List<SavedRecipesData>>(_savedRecipesFilePath);
-		var userSavedRecipe = savedRecipes.FirstOrDefault(sr => sr.UserId == userId);
-
-		if (userSavedRecipe != null)
-		{
-			if (userSavedRecipe.SavedRecipes.Contains(recipe.Id))
-			{
-				userSavedRecipe.SavedRecipes = userSavedRecipe.SavedRecipes.Where(id => id != recipe.Id).ToArray();
-			}
-			else
-			{
-				userSavedRecipe.SavedRecipes = userSavedRecipe.SavedRecipes.Concat(new[] { recipe.Id }).ToArray();
-			}
-		}
-		else
-		{
-			savedRecipes.Add(new SavedRecipesData { UserId = userId, SavedRecipes = new[] { recipe.Id } });
-		}
-
-		return NoContent();
-	}
+	public IActionResult Save([FromBody] RecipeData recipe, [FromQuery] Guid userId) =>
+		// We do not persist the favorite state in this example.
+		NoContent();
 
 	/// <summary>
 	/// Creates a review for a recipe.
@@ -165,7 +136,10 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>The created review.</returns>
 	[HttpPost("review")]
-	public IActionResult CreateReview([FromBody] ReviewData reviewData, [FromQuery] Guid userId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(ReviewData), 201)]
+	[ProducesResponseType(404)]
+	public ActionResult<ReviewData> CreateReview([FromBody] ReviewData reviewData, [FromQuery] Guid userId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var recipe = recipes.FirstOrDefault(r => r.Id == reviewData.RecipeId);
@@ -191,7 +165,10 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>The updated review.</returns>
 	[HttpPost("review/like")]
-	public IActionResult LikeReview([FromBody] ReviewData reviewData, [FromQuery] Guid userId)
+	[ProducesResponseType(typeof(ReviewData), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<ReviewData> LikeReview([FromBody] ReviewData reviewData, [FromQuery] Guid userId)
+
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var review = recipes.SelectMany(r => r.Reviews)
@@ -222,10 +199,7 @@ public class RecipeController : ControllerBase
 
 			return Ok(review);
 		}
-		else
-		{
-			return NotFound("Review not found");
-		}
+		return NotFound("Review not found");
 	}
 
 	/// <summary>
@@ -235,6 +209,9 @@ public class RecipeController : ControllerBase
 	/// <param name="userId">The user ID.</param>
 	/// <returns>The updated review.</returns>
 	[HttpPost("review/dislike")]
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(ReviewData), 200)]
+	[ProducesResponseType(404)]
 	public IActionResult DislikeReview([FromBody] ReviewData reviewData, [FromQuery] Guid userId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
@@ -278,7 +255,10 @@ public class RecipeController : ControllerBase
 	/// <param name="recipeId">The recipe ID.</param>
 	/// <returns>A list of reviews.</returns>
 	[HttpGet("{recipeId}/reviews")]
-	public IActionResult GetReviews(Guid recipeId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<ReviewData>), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<IEnumerable<ReviewData>> GetReviews(Guid recipeId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var recipe = recipes.FirstOrDefault(r => r.Id == recipeId);
@@ -287,10 +267,8 @@ public class RecipeController : ControllerBase
 		{
 			return Ok(recipe.Reviews.ToImmutableList());
 		}
-		else
-		{
-			return NotFound("Recipe not found");
-		}
+
+		return NotFound("Recipe not found");
 	}
 
 	/// <summary>
@@ -299,7 +277,10 @@ public class RecipeController : ControllerBase
 	/// <param name="recipeId">The recipe ID.</param>
 	/// <returns>A list of steps.</returns>
 	[HttpGet("{recipeId}/steps")]
-	public IActionResult GetSteps(Guid recipeId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<StepData>), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<IEnumerable<StepData>> GetSteps(Guid recipeId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var recipe = recipes.FirstOrDefault(r => r.Id == recipeId);
@@ -320,7 +301,10 @@ public class RecipeController : ControllerBase
 	/// <param name="recipeId">The recipe ID.</param>
 	/// <returns>A list of ingredients.</returns>
 	[HttpGet("{recipeId}/ingredients")]
-	public IActionResult GetIngredients(Guid recipeId)
+	[Produces("application/json")]
+	[ProducesResponseType(typeof(IEnumerable<IngredientData>), 200)]
+	[ProducesResponseType(404)]
+	public ActionResult<IEnumerable<IngredientData>> GetIngredients(Guid recipeId)
 	{
 		var recipes = LoadData<List<RecipeData>>(_recipesFilePath);
 		var recipe = recipes.FirstOrDefault(r => r.Id == recipeId);
@@ -329,21 +313,7 @@ public class RecipeController : ControllerBase
 		{
 			return Ok(recipe.Ingredients.ToImmutableList());
 		}
-		else
-		{
-			return NotFound("Recipe not found");
-		}
-	}
 
-	/// <summary>
-	/// Loads data from a specified JSON file.
-	/// </summary>
-	/// <typeparam name="T">The type of data to load.</typeparam>
-	/// <param name="filePath">The file path of the JSON file.</param>
-	/// <returns>The loaded data.</returns>
-	private T LoadData<T>(string filePath)
-	{
-		var json = System.IO.File.ReadAllText(filePath);
-		return JsonSerializer.Deserialize<T>(json);
+		return NotFound("Recipe not found");
 	}
 }

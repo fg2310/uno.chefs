@@ -1,5 +1,5 @@
-using Chefs.Services.Clients.Models;
-using StepData = Chefs.Services.Clients.Models.StepData;
+using Chefs.Client.Models;
+using StepData = Chefs.Client.Models.StepData;
 
 namespace Chefs.Business.Models;
 
@@ -34,7 +34,7 @@ public record Step
 		Description = Description,
 		UrlVideo = UrlVideo
 	};
-	
+
 	private static TimeSpan ToTimeSpan(TimeSpanObject? timeSpanObject)
 	{
 		return new TimeSpan(timeSpanObject?.Ticks ?? 0);

@@ -2,7 +2,7 @@
 uid: Uno.Recipes.NavigateTabBar
 ---
 
-# How to Navigate Using a TabBar
+# TabBar Navigation
 
 ## Problem
 
@@ -48,9 +48,40 @@ The `TabBar` control in Uno Platform, part of the **Uno.Toolkit** library, offer
 
   To enable region-based navigation, you must set the Region.Attached property:
 
-  [!code-xml[](../../Chefs/Views/MainPage.xaml#L36-L65)]
-  
-  `uen:Region.Name="..."` on each `TabBarItem` links each tab to a specific content region.
+  ```xml
+    <utu:TabBar Grid.Row="1"
+                Grid.Column="1"
+                Visibility="{utu:Responsive Normal=Visible,
+                              Wide=Collapsed}"
+                uen:Region.Attached="True"
+                Style="{StaticResource BottomTabBarStyle}">
+        <utu:TabBarItem uen:Region.Name="Home"
+                utu:TabBarItemExtensions.OnClickBehaviors="BackNavigation"
+                Content="Home">
+          <utu:TabBarItem.Icon>
+            <PathIcon Data="{StaticResource Icon_Home}" />
+          </utu:TabBarItem.Icon>
+        </utu:TabBarItem>
+
+        <utu:TabBarItem uen:Region.Name="-/Search"
+                utu:TabBarItemExtensions.OnClickBehaviors="BackNavigation"
+                Content="Search">
+          <utu:TabBarItem.Icon>
+            <PathIcon Data="{StaticResource Icon_Search}" />
+          </utu:TabBarItem.Icon>
+        </utu:TabBarItem>
+
+        <utu:TabBarItem uen:Region.Name="FavoriteRecipes"
+                utu:TabBarItemExtensions.OnClickBehaviors="BackNavigation"
+                Content="Favorites">
+          <utu:TabBarItem.Icon>
+            <PathIcon Data="{StaticResource Icon_Heart}" />
+          </utu:TabBarItem.Icon>
+        </utu:TabBarItem>
+    </utu:TabBar>
+  ```
+
+  The `uen:Region.Name="..."` on each `TabBarItem` links each tab to a specific content region.
 
 ## Example Usage in Chefs
 
@@ -65,7 +96,6 @@ The above code has the following effect:
 ## Source Code
 
 - [Main Navigation TabBar](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/MainPage.xaml#L36-L65)
-
 - [Recipe Detail Top TabBar](https://github.com/unoplatform/uno.chefs/blob/139edc9eab65b322e219efb7572583551c40ad32/Chefs/Views/RecipeDetailsPage.xaml#L173-L192)
 
 ## Documentation
